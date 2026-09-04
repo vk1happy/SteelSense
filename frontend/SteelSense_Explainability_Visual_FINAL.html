@@ -1,0 +1,1533 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SteelSense — Creative UI Preview</title>
+<style>
+:root{
+ --bg:#07090c;--surface:#0e1217;--surface2:#131922;--line:#27303a;
+ --text:#f4f7f8;--muted:#84909c;--teal:#28d3ad;--cyan:#5bb7e8;
+ --violet:#9b8cff;--amber:#e5b55b;--rose:#ef7f92;--shadow:0 28px 80px rgba(0,0,0,.42)
+}
+*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
+body{min-height:100vh;overflow:hidden}
+.app{height:100vh;display:flex;background:
+ radial-gradient(850px 520px at 82% -8%,rgba(91,183,232,.10),transparent 62%),
+ radial-gradient(700px 480px at 40% 105%,rgba(40,211,173,.06),transparent 64%)}
+.sidebar{width:310px;flex:0 0 310px;height:100vh;padding:18px 14px;background:rgba(8,11,15,.96);border-right:1px solid var(--line);transition:width .34s cubic-bezier(.22,.8,.22,1),flex-basis .34s;position:relative;z-index:20}
+.sidebar.closed{width:78px;flex-basis:78px}
+.sidebar.closed .side-top{height:58px}
+.sidebar.closed .toggle{display:grid!important}
+.sidebar:not(.closed) .toggle{display:grid!important}
+
+.side-top{height:58px;display:flex;align-items:center;gap:10px;padding:0 7px}
+.brand{display:flex;align-items:center;gap:11px;min-width:0;flex:1}
+.mark{width:38px;height:38px;border-radius:12px;background:
+ radial-gradient(circle at 32% 28%,rgba(104,191,231,.20),transparent 34%),
+ linear-gradient(145deg,#172830,#080d12);
+ border:1px solid #3a6872;display:grid;place-items:center;position:relative;overflow:hidden;flex:0 0 38px;
+ box-shadow:inset 0 0 18px rgba(40,211,173,.07),0 0 18px rgba(40,211,173,.06)}
+.mark:after{content:"";position:absolute;inset:5px;border:1px solid rgba(104,191,231,.20);border-radius:9px;transform:rotate(45deg);pointer-events:none}
+.mark:before{content:"";position:absolute;width:58px;height:2px;background:linear-gradient(90deg,transparent,var(--teal),var(--cyan),transparent);transform:rotate(-42deg);animation:scan 3.2s infinite}
+.mark{font-weight:900;letter-spacing:-.5px;color:#eef7f7;text-shadow:0 0 12px rgba(40,211,173,.28)}
+@keyframes scan{0%,65%{left:-60px}85%,100%{left:55px}}
+.brand b{font-size:17px;letter-spacing:.7px;white-space:nowrap}.brand small{display:block;font-size:8px;color:var(--teal);letter-spacing:2px;margin-top:2px;white-space:nowrap}
+.toggle{position:relative;width:34px;height:34px;border:1px solid #33404b;background:#11161c;border-radius:10px;color:#d1d9de;cursor:pointer;font-size:23px;display:grid;place-items:center;transition:.2s;flex:0 0 34px;z-index:31}
+.toggle:hover{background:#1a2128;color:#fff;border-color:#46525d;transform:scale(1.04)}
+.navlabel{font-size:9px;letter-spacing:2px;color:#586570;margin:24px 11px 10px}
+.nav{display:grid;gap:5px}.nav button{width:100%;height:47px;border:1px solid transparent;background:transparent;color:#8996a1;border-radius:12px;padding:0 12px;display:flex;align-items:center;gap:13px;cursor:pointer;text-align:left;transition:.24s;position:relative}
+.nav button:hover{background:#121920;color:#e7edf0;border-color:#242e37;transform:translateX(2px)}
+.nav button.active{background:linear-gradient(90deg,rgba(40,211,173,.13),rgba(91,183,232,.05));border-color:#28564f;color:#fff}
+.nav button.active:before{content:"";position:absolute;left:-1px;top:9px;bottom:9px;width:3px;border-radius:0 3px 3px 0;background:var(--teal);box-shadow:0 0 14px rgba(40,211,173,.55)}
+.nicon{width:22px;text-align:center;font-size:16px;color:#6f7e89;flex:0 0 22px}.active .nicon{color:var(--teal)}
+.navtext{font-size:12px;white-space:nowrap}
+.side-bottom{position:absolute;left:14px;right:14px;bottom:18px}.health{border:1px solid #26343a;border-radius:14px;padding:14px;background:linear-gradient(145deg,#10181d,#0b1015)}.health .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--teal);box-shadow:0 0 12px var(--teal);margin-right:7px}.health small{color:#7b8993;font-size:9px}.health b{display:block;font-size:12px;margin:8px 0 3px}.version{font-size:8px;color:#4f5c65;letter-spacing:1.2px;margin:12px 6px}
+.sidebar.closed .brand{display:none}
+.sidebar.closed .side-top{justify-content:center;padding:0}
+.sidebar.closed .toggle{
+  position:absolute;top:20px;right:-16px;
+  border-radius:50%;width:32px;height:32px;
+  background:#151c23;border:1px solid #3a4752;
+  box-shadow:0 8px 24px rgba(0,0,0,.55);
+  z-index:30
+}
+.sidebar.closed .navlabel,
+.sidebar.closed .navtext,
+.sidebar.closed .health,
+.sidebar.closed .version{display:none}
+.sidebar.closed .nav{margin-top:22px}
+.sidebar.closed .nav button{justify-content:center;padding:0}
+.sidebar.closed .nav button.active:before{left:0}
+.sidebar.closed .nicon{font-size:18px}
+
+.main{min-width:0;flex:1;overflow:auto}.top{height:76px;display:flex;align-items:center;justify-content:space-between;padding:0 42px;border-bottom:1px solid rgba(39,48,58,.8);background:rgba(7,9,12,.78);backdrop-filter:blur(18px);position:sticky;top:0;z-index:10}
+.steps{display:flex;align-items:center;gap:10px}.step{display:flex;align-items:center;gap:7px;color:#53616c;font-size:11px;cursor:pointer}.step .circle{width:29px;height:29px;border:1px solid #27323c;border-radius:50%;display:grid;place-items:center;font-size:9px}.step.active{color:#e8edef}.step.active .circle{border-color:var(--teal);color:var(--teal);box-shadow:0 0 18px rgba(40,211,173,.12)}.chev{color:#35414b}.signal{font-size:9px;letter-spacing:1.5px;color:#6c7b86}.signal i{font-style:normal;color:var(--teal)}
+
+.page{max-width:1450px;margin:auto;padding:48px 46px 90px}.eyebrow{font-size:9px;letter-spacing:2.2px;color:#697782}.hero{display:flex;justify-content:space-between;align-items:flex-end;gap:30px}.hero h1{font-size:47px;line-height:1.02;letter-spacing:-2.3px;margin:10px 0 13px;max-width:820px}.hero h1 span{background:linear-gradient(90deg,var(--teal),var(--cyan),var(--violet));background-clip:text;color:transparent}.sub{color:#7e8c97;font-size:14px;max-width:760px}.hero-chip{border:1px solid #2b3a43;background:#10171d;border-radius:13px;padding:12px 15px;min-width:190px}.hero-chip small{font-size:8px;color:#697984;letter-spacing:1.3px}.hero-chip b{display:block;margin-top:5px;font-size:12px}.hero-chip em{font-style:normal;color:var(--teal)}
+.grid{display:grid;grid-template-columns:390px 1fr;gap:18px;margin-top:31px}.card{border:1px solid #25303a;background:linear-gradient(145deg,rgba(17,22,29,.98),rgba(11,14,19,.98));border-radius:18px;box-shadow:var(--shadow);overflow:hidden;position:relative}.card:before{content:"";position:absolute;inset:-1px;background:linear-gradient(120deg,transparent 25%,rgba(91,183,232,.06),transparent 58%);transform:translateX(-100%);transition:1s}.card:hover:before{transform:translateX(100%)}
+.form{padding:25px}.tag{font-size:9px;letter-spacing:1.8px;color:var(--teal)}.ctitle{font-size:20px;font-weight:700;margin-top:6px}.muted{color:#72818c;font-size:11px}.fields{display:grid;grid-template-columns:1fr 1fr;gap:13px;margin-top:22px}label{font-size:10px;color:#9aa6af}.field{margin-top:6px}.field input,.field select{width:100%;height:47px;border:1px solid #2a3540;background:#0b1015;color:#eef3f5;border-radius:10px;padding:0 12px;outline:0;transition:.2s}.field input::placeholder{color:#50606b}.field input:focus,.field select:focus{border-color:#378f85;box-shadow:0 0 0 3px rgba(40,211,173,.06)}.field select option{background:#0b1015;color:#eef3f5}.full{grid-column:1/-1}.hint{margin-top:16px;padding:12px;border:1px solid #26333b;background:#0d1419;border-radius:11px;color:#71818b;font-size:10px;line-height:1.55}.hint b{color:#b6c1c7}.cta{width:100%;height:50px;border:0;border-radius:10px;margin-top:16px;color:#06110f;font-weight:800;cursor:pointer;background:linear-gradient(100deg,var(--teal),#55d8bd 45%,#68bfe7);box-shadow:0 12px 30px rgba(40,211,173,.11);transition:.22s}.cta:hover{transform:translateY(-2px);filter:brightness(1.06);box-shadow:0 18px 38px rgba(40,211,173,.18)}
+.result{padding:29px;min-height:480px}.resulthead{display:flex;justify-content:space-between;font-size:9px;letter-spacing:1.5px;color:#6e7c86}.live{color:var(--teal)}.pred{margin-top:58px;color:#73818c;font-size:12px}.big{font-size:79px;letter-spacing:-5px;line-height:1;margin:8px 0;color:#f4f7f8;font-weight:760}.big span{font-size:18px;letter-spacing:0;color:#82909a}.accent-line{height:3px;width:170px;background:linear-gradient(90deg,var(--teal),var(--cyan),transparent);border-radius:3px;margin:16px 0 25px}
+.metrics{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid #27313a;border-bottom:1px solid #27313a}.metric{padding:19px 15px;border-right:1px solid #27313a}.metric:last-child{border:0}.metric small{display:block;color:#697984;font-size:8px;letter-spacing:1.1px}.metric strong{display:block;font-size:19px;margin-top:7px}.teal{color:var(--teal)}.cyan{color:var(--cyan)}.amber{color:var(--amber)}
+.forecast-metrics{grid-template-columns:1fr}.forecast-cost{padding:22px 18px}.forecast-cost strong{font-size:34px;letter-spacing:-1px;color:var(--cyan);margin-top:9px}
+.next{margin-top:14px;border:1px solid #29343d;border-radius:11px;padding:13px 15px;display:flex;align-items:center;justify-content:space-between;background:#0c1217;cursor:pointer;transition:.22s}.next:hover{border-color:#39776d;background:#101a1e;transform:translateX(3px)}.next b{font-size:11px}.next span{display:block;color:#6f7d87;font-size:9px;margin-top:3px}.go{font-size:18px;color:var(--teal)}
+
+.hidden{display:none!important}.analytics{display:grid;grid-template-columns:1.45fr .8fr;gap:18px}.wide{grid-column:1/-1}.analytic-card{padding:27px}.bars{display:grid;gap:17px;margin-top:24px}.bar{display:grid;grid-template-columns:185px 1fr 65px;gap:12px;align-items:center;font-size:10px;color:#92a0aa}.track{height:7px;background:#19222a;border-radius:8px;overflow:hidden}.fill{height:100%;border-radius:8px;background:linear-gradient(90deg,var(--teal),var(--cyan));animation:grow 1s ease both}.fill.v{background:linear-gradient(90deg,var(--violet),var(--cyan))}@keyframes grow{from{width:0}}
+.radar{height:265px;display:grid;place-items:center}.radar svg{width:210px;height:210px}.ring{stroke:#29343e;fill:none}.rfill{fill:rgba(40,211,173,.10);stroke:var(--teal);stroke-width:2}
+.scenario-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}.scenario-card{padding:28px}.scenario-value{font-size:53px;letter-spacing:-3px;margin:8px 0;color:#f2f5f6}.scenario-value em{font-size:16px;color:#7c8b95;font-style:normal;letter-spacing:0}.scenario-card:first-child{border-top:2px solid var(--cyan)}.scenario-card:nth-child(2){border-top:2px solid var(--violet)}.scenario-full{grid-column:1/-1}
+.decision{padding:30px;border-top:2px solid var(--amber)}.decision h2{font-size:24px;margin:8px 0 10px}.decision p{color:#8996a0;line-height:1.65;max-width:850px}.decision .badge{display:inline-block;border:1px solid #5b4c2a;color:var(--amber);background:rgba(229,181,91,.06);padding:7px 9px;border-radius:8px;font-size:8px;letter-spacing:1.3px}
+@media(max-width:1050px){.sidebar{width:76px;flex-basis:76px}.sidebar .brand,.sidebar .navlabel,.sidebar .navtext,.sidebar .health,.sidebar .version{display:none}.sidebar .side-top{justify-content:center}.sidebar .nav button{justify-content:center}.sidebar .toggle{position:absolute;right:-15px;top:18px;border-radius:50%}.grid{grid-template-columns:1fr}.analytics,.scenario-grid{grid-template-columns:1fr}.scenario-full{grid-column:auto}.hero{align-items:flex-start;flex-direction:column}.hero-chip{min-width:0}.steps .step span:last-child{display:none}}
+
+.page{position:relative}
+.page:before{content:"";position:absolute;right:8%;top:40px;width:260px;height:260px;border:1px solid rgba(91,183,232,.08);border-radius:50%;box-shadow:0 0 80px rgba(91,183,232,.035);pointer-events:none}
+.card{transition:transform .25s ease,border-color .25s ease,box-shadow .25s ease}
+.card:hover{transform:translateY(-2px);border-color:#34424e;box-shadow:0 32px 90px rgba(0,0,0,.48)}
+.nav button[data-page="forecast"] .nicon{color:var(--teal)}
+.nav button[data-page="explain"] .nicon{color:var(--cyan)}
+.nav button[data-page="whatif"] .nicon{color:var(--violet)}
+.nav button[data-page="decision"] .nicon{color:var(--amber)}
+.nav button.active .nicon{filter:drop-shadow(0 0 6px currentColor)}
+.metric:nth-child(1) strong{color:var(--teal)}
+.metric:nth-child(2) strong{color:var(--cyan)}
+.metric:nth-child(3) strong{color:#f0d49a}
+.next:nth-of-type(1):hover{border-color:#347f71}
+.next:nth-of-type(2):hover{border-color:#6358a5}
+
+.sidebar:not(.closed){box-shadow:18px 0 55px rgba(0,0,0,.18)}
+.sidebar:not(.closed) .side-top{border-bottom:1px solid #202a32;margin-bottom:4px;padding-bottom:8px}
+.sidebar:not(.closed) .nav button.active{box-shadow:inset 0 0 24px rgba(40,211,173,.035)}
+.sidebar:not(.closed) .nav button[data-page="explain"].active{border-color:#315b6e}
+.sidebar:not(.closed) .nav button[data-page="whatif"].active{border-color:#4b416f}
+.sidebar:not(.closed) .nav button[data-page="decision"].active{border-color:#5b4c2a}
+
+.toggle:after{content:"";position:absolute;opacity:0;pointer-events:none;white-space:nowrap;
+  background:#161d24;border:1px solid #35414b;color:#d9e0e4;padding:7px 9px;border-radius:7px;
+  font-size:9px;right:42px;top:50%;transform:translateY(-50%);transition:.18s}
+.sidebar.closed .toggle:hover:after{content:"Expand sidebar";opacity:1}
+.sidebar:not(.closed) .toggle:hover:after{content:"Collapse sidebar";opacity:1}
+
+/* V4 — expressive motion layer */
+:root{
+ --blue:#5aa7ff;
+ --cyan:#49d7e8;
+ --purple:#a77bff;
+ --pink:#ff78b7;
+ --orange:#ffad5c;
+ --yellow:#f2cf65;
+ --green:#35d6a4;
+ --white:#e9edf2;
+ --muted:#87929e;
+ --bg2:#05070a;
+}
+body{background:#05070a;color:var(--white)}
+.mint,.sky,.violet2,.peach,.gold{color:inherit}
+.main{position:relative}
+.main:before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.16;background:
+ linear-gradient(rgba(255,255,255,.018) 1px,transparent 1px),
+ linear-gradient(90deg,rgba(255,255,255,.018) 1px,transparent 1px);
+ background-size:44px 44px;mask-image:linear-gradient(to bottom,black,transparent 85%)}
+.top{height:78px;background:#05070a;border-bottom-color:rgba(120,140,155,.16)}
+.step{transition:color .25s,transform .25s}.step:hover{transform:translateY(-2px);color:#e9eef1}
+.step .circle{transition:.35s cubic-bezier(.2,.9,.2,1)}
+.step:hover .circle{transform:scale(1.1);border-color:#506171}
+.step.active .circle{box-shadow:0 0 0 6px rgba(79,140,255,.07),0 0 30px rgba(79,140,255,.20)}
+.signal i{background:var(--green)!important;animation:pulseDot 1.8s infinite}@keyframes pulseDot{0%,100%{opacity:1}50%{opacity:.35}}
+
+.hero h1{font-size:54px;letter-spacing:-2.8px}
+.hero h1 span{
+ background:linear-gradient(90deg,var(--cyan),var(--blue),var(--purple),var(--pink));
+ background-size:240% 100%;background-clip:text;color:transparent;
+ animation:gradientFlow 7s ease-in-out infinite alternate;
+}
+@keyframes gradientFlow{from{background-position:0% 50%}to{background-position:100% 50%}}
+.eyebrow{color:#7e9bab}
+.hero-chip{background:linear-gradient(145deg,rgba(18,28,35,.92),rgba(17,18,28,.82));overflow:hidden}
+.hero-chip:after{content:"";display:block;height:2px;margin-top:11px;background:linear-gradient(90deg,var(--blue),var(--cyan),var(--purple),transparent);background-size:200% 100%;animation:gradientFlow 5s linear infinite}
+
+.card{backdrop-filter:blur(10px);transition:transform .35s cubic-bezier(.2,.8,.2,1),border-color .3s,box-shadow .35s}
+.card:hover{transform:translateY(-4px);border-color:#3b4a58;box-shadow:0 35px 100px rgba(0,0,0,.52)}
+.form{background:
+ linear-gradient(145deg,rgba(17,25,32,.96),rgba(12,16,23,.92))}
+.result{background:
+ radial-gradient(600px 250px at 85% 10%,rgba(98,186,245,.08),transparent 65%),
+ linear-gradient(145deg,rgba(16,24,31,.97),rgba(10,14,20,.96))}
+.big{font-size:88px;background:linear-gradient(100deg,#dfe7f2 5%,var(--blue) 58%,var(--purple));background-clip:text;color:transparent;transition:filter .3s}
+.accent-line{height:4px;width:230px;background:linear-gradient(90deg,var(--blue),var(--cyan),var(--purple),var(--pink),transparent);background-size:220% 100%;animation:gradientFlow 6s ease-in-out infinite}
+.cta{background:#0b0e13;border:1px solid var(--blue);background-size:200% 100%;animation:gradientFlow 8s ease-in-out infinite;color:var(--white);box-shadow:0 0 0 1px rgba(73,215,232,.08),0 12px 35px rgba(0,0,0,.35);position:relative;overflow:hidden}
+.cta:after{content:"";position:absolute;top:-80%;left:-25%;width:20%;height:260%;background:rgba(255,255,255,.32);transform:rotate(18deg);transition:.6s}
+.cta:hover:after{left:115%}
+.cta:hover{border-color:var(--cyan);box-shadow:0 0 0 1px rgba(73,215,232,.16),0 0 30px rgba(73,215,232,.08)}
+.nav button.active .navtext{color:var(--white)}
+.nav button[data-page="forecast"] .navtext{color:#79b7ff}
+.nav button[data-page="explain"] .navtext{color:#67dce8}
+.nav button[data-page="whatif"] .navtext{color:#b994ff}
+.nav button[data-page="decision"] .navtext{color:#ffc178}
+.nav button:hover .navtext{color:#ffffff}
+.badge-blue{color:var(--blue)!important;border-color:rgba(90,167,255,.35)!important}
+.badge-cyan{color:var(--cyan)!important;border-color:rgba(73,215,232,.35)!important}
+.badge-purple{color:var(--purple)!important;border-color:rgba(167,123,255,.35)!important}
+.badge-pink{color:var(--pink)!important;border-color:rgba(255,120,183,.35)!important}
+.badge-orange{color:var(--orange)!important;border-color:rgba(255,173,92,.35)!important}
+
+.cta:active{transform:translateY(1px) scale(.985)}
+
+.next{position:relative;overflow:hidden;transition:transform .28s,border-color .28s,background .28s}
+.next:after{content:"";position:absolute;left:0;bottom:0;width:0;height:2px;background:linear-gradient(90deg,var(--blue),var(--cyan),var(--purple));transition:width .35s}
+.next:hover:after{width:100%}
+.next:hover{transform:translateX(5px);background:#101920}
+.go{transition:transform .3s}.next:hover .go{transform:translateX(5px)}
+
+.nav button{overflow:hidden}
+.nav button:after{content:"";position:absolute;width:110px;height:110px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.07),transparent 68%);left:-130px;top:50%;transform:translateY(-50%);transition:left .45s}
+.nav button:hover:after{left:70%}
+.nav button.active{box-shadow:inset 0 0 35px rgba(79,140,255,.07)}
+.nav button[data-page="explain"].active{box-shadow:inset 0 0 35px rgba(79,140,255,.055)}
+.nav button[data-page="whatif"].active{box-shadow:inset 0 0 35px rgba(170,140,255,.055)}
+.nav button[data-page="decision"].active{box-shadow:inset 0 0 35px rgba(240,197,109,.045)}
+
+.field input,.field select{transition:border-color .25s,box-shadow .25s,transform .25s}
+.field input:hover,.field select:hover{border-color:#3b4854}
+.field input:focus,.field select:focus{transform:translateY(-1px);border-color:var(--blue);box-shadow:0 0 0 3px rgba(90,167,255,.08),0 10px 25px rgba(0,0,0,.35)}
+
+.fill{background:linear-gradient(90deg,var(--blue),var(--cyan),var(--purple));background-size:180% 100%;animation:grow 1s ease both,gradientFlow 6s ease infinite}
+.fill.v{background:linear-gradient(90deg,var(--purple),var(--cyan),var(--pink));background-size:180% 100%}
+.rfill{fill:url(#radarGradient);stroke:var(--cyan);filter:drop-shadow(0 0 8px rgba(79,140,255,.20))}
+.radar svg{filter:drop-shadow(0 15px 30px rgba(0,0,0,.3))}
+
+.metric strong{transition:transform .25s}.metric:hover strong{transform:translateX(3px)}
+.scenario-card:first-child{border-top:2px solid var(--cyan);box-shadow:inset 0 20px 45px rgba(98,186,245,.025)}
+.scenario-card:nth-child(2){border-top:2px solid var(--purple);box-shadow:inset 0 20px 45px rgba(170,140,255,.025)}
+.decision{border-top-color:var(--orange);background:
+ radial-gradient(700px 220px at 90% 0%,rgba(240,197,109,.06),transparent 70%),
+ linear-gradient(145deg,rgba(25,24,18,.9),rgba(12,15,19,.96))}
+
+@keyframes pageIn{from{opacity:0;transform:translateY(12px) scale(.995)}to{opacity:1;transform:none}}
+.page:not(.hidden){animation:pageIn .45s cubic-bezier(.2,.8,.2,1)}
+@keyframes ripple{0%{transform:scale(.2);opacity:.7}100%{transform:scale(2.4);opacity:0}}
+.ripple{position:fixed;width:90px;height:90px;border-radius:50%;pointer-events:none;border:1px solid rgba(79,140,255,.55);animation:ripple .65s ease-out forwards;z-index:100}
+
+/* Sidebar motion — spring-like open/close */
+.sidebar{
+  overflow:hidden;
+  transition:width .55s cubic-bezier(.16,1,.3,1),flex-basis .55s cubic-bezier(.16,1,.3,1),
+             box-shadow .4s ease;
+}
+.sidebar:not(.closed){box-shadow:16px 0 60px rgba(0,0,0,.34)}
+.sidebar .brand,.sidebar .navlabel,.sidebar .navtext,.sidebar .health,.sidebar .version{
+  transition:opacity .22s ease,transform .42s cubic-bezier(.16,1,.3,1);
+}
+.sidebar.closed .brand,.sidebar.closed .navlabel,.sidebar.closed .navtext,
+.sidebar.closed .health,.sidebar.closed .version{
+  opacity:0;transform:translateX(-18px);pointer-events:none;
+}
+.sidebar:not(.closed) .brand,.sidebar:not(.closed) .navlabel,.sidebar:not(.closed) .navtext,
+.sidebar:not(.closed) .health,.sidebar:not(.closed) .version{
+  opacity:1;transform:translateX(0);
+}
+.sidebar:not(.closed) .nav button{animation:navReveal .48s cubic-bezier(.16,1,.3,1) both}
+.sidebar:not(.closed) .nav button:nth-child(1){animation-delay:.03s}
+.sidebar:not(.closed) .nav button:nth-child(2){animation-delay:.07s}
+.sidebar:not(.closed) .nav button:nth-child(3){animation-delay:.11s}
+.sidebar:not(.closed) .nav button:nth-child(4){animation-delay:.15s}
+@keyframes navReveal{from{opacity:0;transform:translateX(-18px)}to{opacity:1;transform:translateX(0)}}
+.toggle{transition:transform .42s cubic-bezier(.16,1,.3,1),background .25s,border-color .25s}
+.sidebar:not(.closed) .toggle{transform:rotate(0deg)}
+.sidebar.closed .toggle{transform:rotate(0deg)}
+.toggle:active{transform:scale(.88)!important}
+.sidebar.opening .brand{animation:brandPop .5s cubic-bezier(.16,1,.3,1)}
+@keyframes brandPop{from{opacity:0;transform:translateX(-24px) scale(.96)}to{opacity:1;transform:none}}
+
+.dashboard-grid{display:grid;grid-template-columns:1.45fr .8fr .8fr;gap:16px;margin-top:30px}
+.dash-main{grid-column:span 1;padding:27px}
+.dash-side{padding:27px}
+.dash-top{display:flex;justify-content:space-between;align-items:flex-start}
+.dash-live{font-size:8px;letter-spacing:1.4px;color:#67dce8}
+.dash-energy{display:flex;align-items:flex-end;gap:9px;margin-top:35px}
+.dash-energy strong{font-size:74px;letter-spacing:-4px;line-height:.9;color:#e8edf3}
+.dash-energy span{font-size:14px;color:#73818c;margin-bottom:6px}
+.dash-track{height:8px;border-radius:99px;background:#111820;border:1px solid #202a33;margin-top:25px;overflow:hidden}
+.dash-track i{display:block;height:100%;width:62%;border-radius:99px;background:linear-gradient(90deg,#5aa7ff,#a77bff);box-shadow:0 0 20px rgba(90,167,255,.22);transition:width .8s cubic-bezier(.16,1,.3,1),background .4s}
+.dash-meta{display:flex;justify-content:space-between;color:#667580;font-size:9px;margin-top:9px}
+.dash-cost{font-size:30px;font-weight:760;letter-spacing:-1px;margin:22px 0 5px;color:#e8edf3}
+.risk-pill{display:inline-flex;margin-top:18px;padding:6px 9px;border-radius:99px;border:1px solid #30404a;color:#6ed7c0;font-size:8px;letter-spacing:1px;transition:.35s}
+.risk-pill.warn{color:#f2cf65;border-color:rgba(242,207,101,.42);background:rgba(242,207,101,.045)}
+.risk-pill.bad{color:#ff6e78;border-color:rgba(255,90,100,.5);background:rgba(255,65,75,.07);box-shadow:0 0 22px rgba(255,55,65,.06)}
+.risk-pill.good{color:#5aa7ff;border-color:rgba(90,167,255,.42);background:rgba(90,167,255,.045)}
+.decision-live{grid-column:1/-1;padding:22px 25px;display:flex;gap:17px;align-items:center;border-color:#2a343d;transition:border-color .4s,background .4s,box-shadow .4s}
+.decision-live.good{border-color:rgba(90,167,255,.42);box-shadow:inset 0 0 40px rgba(90,167,255,.035)}
+.decision-live.warn{border-color:rgba(242,207,101,.42);box-shadow:inset 0 0 40px rgba(242,207,101,.035)}
+.decision-live.bad{border-color:rgba(255,75,85,.58);background:linear-gradient(100deg,rgba(45,9,13,.45),#0a0d12);box-shadow:inset 0 0 55px rgba(255,45,55,.055),0 0 35px rgba(255,45,55,.035)}
+.decision-icon{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;border:1px solid #3a4650;color:#f2cf65;font-weight:900;transition:.35s}
+.decision-live.bad .decision-icon{color:#ff626b;border-color:#8b3037;box-shadow:0 0 22px rgba(255,55,65,.12);animation:riskPulse 1.7s infinite}
+.decision-live.good .decision-icon{color:#5aa7ff;border-color:#35609b}
+@keyframes riskPulse{0%,100%{box-shadow:0 0 0 rgba(255,55,65,0)}50%{box-shadow:0 0 25px rgba(255,55,65,.2)}}
+.dashboard-actions{grid-column:1/-1;display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+
+/* Operational top bar — replaces redundant workflow ribbon */
+.top-context{display:flex;align-items:center;gap:13px}
+.top-context strong{display:block;font-size:10px;letter-spacing:1.5px;color:#dfe6eb}
+.top-context small{display:block;font-size:7px;letter-spacing:1.7px;color:#64727d;margin-top:4px}
+.top-status{display:flex;align-items:center;gap:18px}
+.status-item{font-size:8px;letter-spacing:1px;color:#65737d;display:flex;align-items:center;gap:6px}
+.status-item i{width:6px;height:6px;border-radius:50%;display:inline-block}
+.blue-dot{background:#5aa7ff;box-shadow:0 0 10px rgba(90,167,255,.6)}
+.cyan-dot{background:#49d7e8;box-shadow:0 0 10px rgba(73,215,232,.55)}
+.time-dot{background:#a77bff;box-shadow:0 0 10px rgba(167,123,255,.5)}
+.plant-pulse{width:31px;height:31px;border:1px solid #303d48;border-radius:9px;position:relative;overflow:hidden;background:#080b10}
+.plant-pulse span,.plant-pulse i,.plant-pulse b{position:absolute;display:block;height:2px;border-radius:2px}
+.plant-pulse span{width:23px;left:4px;top:9px;background:#5aa7ff;animation:flowline 2.2s linear infinite}
+.plant-pulse i{width:17px;left:8px;top:15px;background:#49d7e8;animation:flowline 1.6s linear infinite reverse}
+.plant-pulse b{width:21px;left:5px;top:21px;background:#a77bff;animation:flowline 2.8s linear infinite}
+@keyframes flowline{0%{transform:translateX(-28px);opacity:.1}35%{opacity:1}100%{transform:translateX(30px);opacity:.1}}
+
+/* Steel/energy themed background motion */
+.energy-grid{position:absolute;inset:0;pointer-events:none;overflow:hidden;opacity:.28}
+.energy-grid:before{content:"";position:absolute;left:0;right:0;top:50%;height:1px;background:linear-gradient(90deg,transparent,#5aa7ff,#49d7e8,transparent);animation:scanAcross 5s linear infinite}
+.energy-grid:after{content:"";position:absolute;left:14%;right:8%;top:12%;height:78%;background:
+ repeating-linear-gradient(90deg,transparent 0 74px,rgba(90,167,255,.045) 75px 76px),
+ repeating-linear-gradient(0deg,transparent 0 52px,rgba(167,123,255,.035) 53px 54px);
+mask-image:linear-gradient(to bottom,transparent,black 20%,black 80%,transparent)}
+@keyframes scanAcross{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+
+/* Prediction pulse: visually ties the large value to an energy signal */
+.result:after{content:"";position:absolute;right:-90px;top:55px;width:270px;height:270px;border-radius:50%;border:1px solid rgba(73,215,232,.07);box-shadow:0 0 0 28px rgba(73,215,232,.012),0 0 0 58px rgba(167,123,255,.01);animation:energyOrbit 5s ease-in-out infinite}
+@keyframes energyOrbit{0%,100%{transform:scale(.96);opacity:.55}50%{transform:scale(1.04);opacity:1}}
+
+/* Data flowing toward forecast button */
+.cta{overflow:hidden}
+.cta .flow-dot{position:absolute;width:5px;height:5px;border-radius:50%;background:#e9edf2;opacity:.7;animation:buttonFlow 2s linear infinite}
+@keyframes buttonFlow{0%{left:-10%;opacity:0}20%{opacity:.8}100%{left:110%;opacity:0}}
+
+/* Topic-specific hover: energy meter grows subtly */
+.dash-main:hover .dash-track i{box-shadow:0 0 25px rgba(90,167,255,.28)}
+.dash-main:hover .dash-energy strong{filter:drop-shadow(0 0 12px rgba(90,167,255,.12))}
+
+/* Explainability chart gets a live "signal" shimmer */
+.analytics .bar .track{position:relative}
+.analytics .bar .track:after{content:"";position:absolute;top:0;bottom:0;width:18px;background:rgba(255,255,255,.12);filter:blur(3px);animation:chartScan 3.8s linear infinite}
+@keyframes chartScan{0%{left:-25px}100%{left:110%}}
+
+/* What-if cards get a subtle experiment pulse */
+.scenario-card:nth-child(2):hover{box-shadow:inset 0 0 50px rgba(167,123,255,.05),0 25px 70px rgba(0,0,0,.42)}
+.scenario-card:first-child:hover{box-shadow:inset 0 0 50px rgba(90,167,255,.05),0 25px 70px rgba(0,0,0,.42)}
+
+.energy-stream{height:28px;margin-top:19px;display:flex;align-items:center;gap:5px}
+.energy-stream span{width:4px;border-radius:4px;background:#5aa7ff;animation:streamPulse 1.2s ease-in-out infinite}
+.energy-stream span:nth-child(1){height:8px}.energy-stream span:nth-child(2){height:15px;animation-delay:.1s;background:#49d7e8}
+.energy-stream span:nth-child(3){height:22px;animation-delay:.2s;background:#a77bff}.energy-stream span:nth-child(4){height:13px;animation-delay:.3s;background:#ff78b7}
+.energy-stream span:nth-child(5){height:18px;animation-delay:.4s;background:#ffad5c}
+.energy-stream em{font-style:normal;font-size:7px;letter-spacing:1.5px;color:#52616c;margin-left:7px}
+@keyframes streamPulse{0%,100%{transform:scaleY(.65);opacity:.5}50%{transform:scaleY(1);opacity:1}}
+
+/* V9 layout fixes: collapsed sidebar has its own compact identity and never covers navigation */
+.sidebar{overflow:visible}
+.compact-mark{display:none}
+.sidebar.closed .side-top{height:96px;display:flex;flex-direction:column;justify-content:flex-start;gap:8px;padding:8px 0 0}
+.sidebar.closed .brand{display:none}
+.sidebar.closed .compact-mark{
+ display:grid;place-items:center;
+ width:36px;height:36px;border-radius:11px;
+ color:#f3f6f8;font-weight:800;font-size:15px;
+ border:1px solid #34424d;background:#0d1319;
+ box-shadow:0 8px 22px rgba(0,0,0,.35),inset 0 0 18px rgba(90,167,255,.035);
+ animation:compactLogoIn .4s cubic-bezier(.16,1,.3,1);
+}
+@keyframes compactLogoIn{from{opacity:0;transform:translateY(-8px) scale(.88)}to{opacity:1;transform:none}}
+.sidebar.closed .toggle{
+ position:relative;top:auto;right:auto;
+ width:30px;height:30px;flex:0 0 30px;
+ border-radius:50%;font-size:19px;
+ transform:none!important;
+}
+.sidebar.closed .nav{margin-top:10px}
+.sidebar.closed .nav button{height:48px}
+.sidebar.closed .nav button.active:before{left:0}
+.sidebar.closed .nicon{
+ width:22px;min-width:22px;font-size:19px;
+ color:#7f8d99;display:grid;place-items:center;
+}
+.sidebar.closed .nav button.active .nicon{color:#5aa7ff;text-shadow:0 0 12px rgba(90,167,255,.3)}
+.sidebar.closed .nav button:hover .nicon{color:#f1f4f6}
+
+/* Main content must never be horizontally clipped on smaller browser windows */
+.main{min-width:0;width:calc(100% - 310px)}
+.sidebar.closed + .main{width:calc(100% - 78px)}
+.page{width:100%;min-width:0}
+.hero{min-width:0}
+.hero>div:first-child{min-width:0}
+.hero h1{max-width:100%;overflow-wrap:anywhere}
+.top-context{min-width:0;max-width:55%}
+.top-context>div:last-child{min-width:0}
+.top-context strong,.top-context small{overflow:hidden;text-overflow:ellipsis}
+.top-status{flex-shrink:0;white-space:nowrap}
+.card,.dashboard-grid,.dashboard-actions{min-width:0}
+
+/* Make headings and body copy more legible */
+.sub,.muted,.hero .sub{color:#a1adb7}
+.card .muted{line-height:1.55}
+.tag,.eyebrow{color:#7f9bb0}
+.ctitle{color:#edf2f5}
+.next span{color:#8d9aa5}
+.next b{color:#eef3f6}
+
+/* Responsive desktop/tablet behaviour */
+@media(max-width:1100px){
+ .top{padding:0 24px}
+ .top-status .status-item:nth-child(3){display:none}
+ .page{padding-left:30px;padding-right:30px}
+ .dashboard-grid{grid-template-columns:1fr 1fr}
+ .dash-main{grid-column:1/-1}
+}
+@media(max-width:760px){
+ .sidebar{width:78px;flex-basis:78px}
+ .sidebar .brand,.sidebar .navlabel,.sidebar .navtext,.sidebar .health,.sidebar .version{display:none}
+ .sidebar .compact-mark{display:grid}
+ .sidebar .side-top{height:96px;display:flex;flex-direction:column;justify-content:flex-start;gap:8px;padding:8px 0 0}
+ .sidebar .toggle{position:relative;top:auto;right:auto;width:30px;height:30px}
+ .sidebar .nav{margin-top:10px}
+ .main,.sidebar.closed + .main{width:calc(100% - 78px)}
+ .top{padding:0 16px}
+ .top-context{max-width:60%}
+ .top-status{display:none}
+ .page{padding:30px 18px 70px}
+ .dashboard-grid{grid-template-columns:1fr}
+ .dash-main,.decision-live,.dashboard-actions{grid-column:1/-1}
+ .dashboard-actions{grid-template-columns:1fr}
+ .dash-energy strong{font-size:58px}
+}
+
+/* Final Summary — same V9 accent language as the workflow */
+.nav button[data-page="dashboard"] .nicon,
+.nav button[data-section="dashboard"] .nicon{
+  color:#6fb7ff !important;
+  opacity:1 !important;
+}
+.nav button[data-page="dashboard"] .navtext,
+.nav button[data-section="dashboard"] .navtext{
+  color:#6fb7ff !important;
+  opacity:1 !important;
+}
+
+
+/* Working local-driver contribution chart */
+.ss-driver-chart{
+  margin-top:28px;
+  display:flex;
+  flex-direction:column;
+  gap:17px;
+}
+.ss-driver-row{
+  display:grid;
+  grid-template-columns:minmax(150px,190px) 1fr 52px;
+  gap:14px;
+  align-items:center;
+}
+.ss-driver-name{
+  color:#aab5c1;
+  font-size:12px;
+  font-weight:600;
+  letter-spacing:.02em;
+}
+.ss-driver-track{
+  height:8px;
+  background:#151e27;
+  border-radius:999px;
+  overflow:hidden;
+  position:relative;
+}
+.ss-driver-bar{
+  display:block;
+  height:100%;
+  width:0;
+  border-radius:999px;
+  animation:ssDriverGrow .9s cubic-bezier(.2,.75,.2,1) forwards;
+}
+.ss-driver-bar.positive{
+  background:linear-gradient(90deg,#55d8cf,#718cff);
+}
+.ss-driver-bar.negative{
+  background:linear-gradient(90deg,#c77bff,#e47bc0);
+}
+.ss-driver-value{
+  font-size:12px;
+  font-weight:700;
+  color:#e9edf2;
+  text-align:right;
+}
+@keyframes ssDriverGrow{
+  from{width:0}
+  to{width:calc(var(--driver-value) * 1%)}
+}
+@media(max-width:800px){
+  .ss-driver-row{grid-template-columns:1fr 60px}
+  .ss-driver-track{grid-column:1 / -1;grid-row:2}
+  .ss-driver-value{grid-column:2;grid-row:1}
+}
+
+
+/* SteelSense explainability visuals — local, topic-relevant and readable */
+.explain-grid{
+  display:grid !important;
+  grid-template-columns:minmax(0,1.35fr) minmax(300px,.85fr) !important;
+  gap:18px !important;
+}
+.explain-main{min-width:0}
+.explain-interpretation{grid-column:1 / -1}
+.explain-bars{margin-top:24px}
+.explain-row{
+  display:grid !important;
+  grid-template-columns:150px minmax(120px,1fr) 76px !important;
+  gap:14px !important;
+  align-items:center !important;
+  margin-bottom:17px !important;
+}
+.explain-row > span{
+  color:#b5c0cb !important;
+  font-size:12px !important;
+  font-weight:600 !important;
+}
+.explain-row b{
+  color:#edf2f6 !important;
+  font-size:12px !important;
+  text-align:right !important;
+}
+.explain-fill{
+  animation:explainFill .85s cubic-bezier(.2,.75,.2,1) both !important;
+}
+.explain-fill.positive{background:linear-gradient(90deg,#55d8cf,#718cff) !important}
+.explain-fill.negative{background:linear-gradient(90deg,#c77bff,#df79bd) !important}
+.chart-legend{
+  display:flex;
+  flex-wrap:wrap;
+  gap:18px;
+  margin-top:22px;
+  padding-top:16px;
+  border-top:1px solid rgba(130,150,170,.12);
+  color:#8e9aa6;
+  font-size:11px;
+}
+.legend-dot{
+  width:7px;height:7px;border-radius:50%;display:inline-block;margin-right:7px;
+}
+.positive-dot{background:#55d8cf}
+.negative-dot{background:#c77bff}
+
+.balance-chart{
+  position:relative;
+  margin-top:25px;
+  padding:22px 0 10px;
+}
+.balance-zero{
+  position:absolute;
+  left:50%;
+  top:22px;
+  bottom:12px;
+  width:1px;
+  background:rgba(180,195,210,.20);
+}
+.balance-axis-label{
+  position:absolute;
+  top:0;
+  font-size:9px;
+  letter-spacing:.10em;
+  text-transform:uppercase;
+  color:#6f7e8d;
+}
+.balance-axis-label.left{left:0}
+.balance-axis-label.right{right:0}
+.balance-row{
+  display:grid;
+  grid-template-columns:65px 1fr;
+  gap:10px;
+  align-items:center;
+  margin:18px 0;
+}
+.balance-name{
+  color:#aeb9c4;
+  font-size:11px;
+  font-weight:600;
+}
+.balance-track{
+  height:10px;
+  position:relative;
+  background:linear-gradient(90deg,transparent 49.8%,rgba(170,185,200,.18) 49.8%,rgba(170,185,200,.18) 50.2%,transparent 50.2%);
+}
+.balance-bar{
+  position:absolute;
+  top:0;
+  height:10px;
+  border-radius:999px;
+  width:calc(var(--w) * .5);
+  animation:balanceGrow .9s cubic-bezier(.2,.75,.2,1) both;
+}
+.balance-bar.pos{
+  left:50%;
+  background:linear-gradient(90deg,#55d8cf,#718cff);
+  transform-origin:left center;
+}
+.balance-bar.neg{
+  right:50%;
+  background:linear-gradient(90deg,#df79bd,#c77bff);
+  transform-origin:right center;
+}
+.interpretation-points{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:12px;
+  margin-top:22px;
+}
+.interpretation-points > div{
+  display:flex;
+  gap:9px;
+  align-items:flex-start;
+  padding:13px;
+  border:1px solid rgba(130,150,170,.12);
+  border-radius:12px;
+  background:rgba(12,18,25,.45);
+  color:#929eaa;
+  font-size:11px;
+  line-height:1.55;
+}
+.point-icon{
+  flex:0 0 22px;
+  height:22px;
+  border-radius:7px;
+  display:grid;
+  place-items:center;
+  font-weight:800;
+}
+.positive-icon{color:#55d8cf;background:rgba(85,216,207,.08)}
+.negative-icon{color:#c77bff;background:rgba(199,123,255,.08)}
+.neutral-icon{color:#8fb7ff;background:rgba(143,183,255,.08)}
+@keyframes explainFill{from{transform:scaleX(0);transform-origin:left}to{transform:scaleX(1)}}
+@keyframes balanceGrow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+
+@media(max-width:900px){
+  .explain-grid{grid-template-columns:1fr !important}
+  .explain-interpretation{grid-column:auto}
+}
+@media(max-width:650px){
+  .explain-row{grid-template-columns:1fr 58px !important}
+  .explain-row .track{grid-column:1 / -1;grid-row:2}
+  .interpretation-points{grid-template-columns:1fr}
+}
+
+
+/* Shared Forecast-style section heading treatment */
+main h1 span{
+ background:linear-gradient(90deg,var(--cyan),var(--blue),var(--purple),var(--pink));
+ background-size:240% 100%;
+ background-clip:text;
+ -webkit-background-clip:text;
+ color:transparent;
+ animation:gradientFlow 7s ease-in-out infinite alternate;
+}
+</style>
+<style>
+/* What-If What-If result — added without changing the existing SteelSense design system. */
+.scenario-rank-wrap{margin-top:18px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.scenario-rank{border:1px solid rgba(130,150,170,.16);background:rgba(12,18,25,.52);border-radius:13px;padding:15px;position:relative;transition:.22s}
+.scenario-rank:hover{transform:translateY(-2px);border-color:rgba(91,183,232,.30)}
+.scenario-rank.selected{border-color:rgba(40,211,173,.55);box-shadow:inset 0 0 28px rgba(40,211,173,.045)}
+.scenario-rank .rank{font-size:9px;letter-spacing:1.4px;color:#87939e;font-weight:800}
+.scenario-rank .rank strong{color:#28d3ad}
+.scenario-rank .scenario-name{font-size:14px;font-weight:750;margin-top:8px}
+.scenario-rank .scenario-meta{font-size:10px;color:#8996a2;margin-top:6px;line-height:1.55}
+.scenario-rank .rf-score{font-size:21px;font-weight:780;margin-top:13px}.scenario-rank .rf-score span{font-size:10px;color:#7f8b96;font-weight:600}
+.scenario-rank .select-scenario{margin-top:12px;width:100%;border:1px solid #33404b;background:#11161c;color:#dce4e8;border-radius:9px;padding:8px 10px;font-size:10px;cursor:pointer}
+.scenario-rank.selected .select-scenario{border-color:#28d3ad;color:#28d3ad}
+.scenario-flow{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;align-items:center;gap:9px;margin-top:18px;padding:12px 14px;border:1px solid rgba(130,150,170,.12);border-radius:12px;background:rgba(12,18,25,.38)}
+.scenario-flow div{font-size:10px;color:#9aa6b0}.scenario-flow b{display:block;font-size:10px;color:#e5ebef;margin-bottom:3px}.scenario-flow i{color:#56636f;font-style:normal}
+.scenario-verify{margin-top:12px;padding:13px 14px;border:1px solid rgba(40,211,173,.16);border-radius:12px;background:rgba(40,211,173,.035);display:flex;justify-content:space-between;gap:14px;align-items:center}
+.scenario-verify .verify-label{font-size:9px;letter-spacing:1.3px;color:#28d3ad;font-weight:800}.scenario-verify .verify-value{font-size:18px;font-weight:780}.scenario-verify small{font-size:10px;color:#8996a2}
+@media(max-width:900px){.scenario-rank-wrap{grid-template-columns:1fr}.scenario-flow{grid-template-columns:1fr}.scenario-flow i{display:none}}
+</style>
+
+<style id="legibility-polish">
+  :root{
+    --ss-text-strong:#eef3f7;
+    --ss-text:#c2ccd5;
+    --ss-text-soft:#9eabb7;
+  }
+  body, button, input, select, textarea {
+    font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont,
+      "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+  body { color:var(--ss-text); }
+  h1,h2,h3,h4,.title,.ctitle,.big,.metric-value,.section-title,.hero-title {
+    color:var(--ss-text-strong);
+    font-weight:700;
+    text-shadow:none !important;
+  }
+  p,.desc,.hint,.label,label,.meta,.muted,.subtle,.small {
+    color:var(--ss-text);
+    text-shadow:none !important;
+  }
+  input,select,textarea {
+    color:var(--ss-text-strong) !important;
+    -webkit-text-fill-color:var(--ss-text-strong);
+    font-weight:500;
+  }
+  input::placeholder,textarea::placeholder {
+    color:#71808c !important;
+    opacity:1 !important;
+    -webkit-text-fill-color:#71808c;
+  }
+  select option {
+    background:#0b1117 !important;
+    color:#eef3f7 !important;
+  }
+  .tag,.eyebrow,.kicker,.section-label {
+    color:#8fb4c8 !important;
+    font-weight:600;
+    letter-spacing:.18em;
+  }
+  .nav-item,.sidebar-label,.status,.badge {
+    text-shadow:none !important;
+  }
+</style>
+
+
+<style id="prediction-number-accent">
+  /* Unique accent for prediction/result numbers only */
+  .big,
+  .metric-value,
+  .prediction-value,
+  .forecast-number,
+  .result-number,
+  .energy-value,
+  .kwh-value,
+  .prediction-number {
+    color:#69d7ff !important;
+    -webkit-text-fill-color:#69d7ff !important;
+    text-shadow:0 0 18px rgba(105,215,255,.16);
+  }
+</style>
+
+
+<style id="steelsense-readable-text">
+  /* Readability-only adjustment: no layout, color, component, or behavior changes. */
+  .navlabel{font-size:10px}
+  .navtext{font-size:13px}
+  .brand small{font-size:9px}
+  .health small{font-size:10px}
+  .health b{font-size:13px}
+  .version{font-size:9px}
+  .step{font-size:12px}
+  .signal{font-size:10px}
+  .eyebrow,.tag{font-size:10px}
+  .sub,.muted,.hero .sub{font-size:12px}
+  .hero-chip small{font-size:9px}
+  .hero-chip b{font-size:13px}
+  label{font-size:12px}
+  .hint{font-size:11px}
+  .resulthead{font-size:10px}
+  .pred{font-size:13px}
+  .metric small{font-size:9px}
+  .metric strong{font-size:20px}
+  .next b{font-size:12px}
+  .next span{font-size:10px}
+  .bars{font-size:11px}
+  .bar{font-size:11px}
+  .balance-axis-label{font-size:10px}
+  .balance-name{font-size:12px}
+  .chart-legend{font-size:12px}
+  .interpretation-points > div{font-size:12px}
+  .scenario-rank .rank{font-size:10px}
+  .scenario-rank .scenario-meta{font-size:11px}
+  .scenario-rank .select-scenario{font-size:11px}
+  .scenario-flow div,.scenario-flow b{font-size:11px}
+  .scenario-flow i{font-size:11px}
+  .scenario-verify .verify-label{font-size:10px}
+  .scenario-verify small{font-size:11px}
+  .top-context strong{font-size:11px}
+  .top-context small{font-size:8px}
+  .status-item{font-size:9px}
+  .dash-live{font-size:9px}
+  .dash-meta{font-size:10px}
+  .energy-stream em{font-size:8px}
+  .risk-pill{font-size:9px}
+  .decision p{font-size:13px}
+  .decision .badge{font-size:9px}
+  .ss-driver-name,.ss-driver-value{font-size:13px}
+  .explain-row > span,.explain-row b{font-size:13px !important}
+  .balance-name{font-size:12px !important}
+  .point-icon{font-size:13px}
+  .top-context strong,.top-context small{font-weight:600}
+  .tag,.eyebrow,.kicker,.section-label{font-weight:650}
+</style>
+
+</head>
+<body>
+<div class="app">
+<aside class="sidebar" id="sidebar">
+ <div class="side-top">
+  <div class="brand"><div class="mark">S</div><div><b>STEELSENSE</b><small>ENERGY INTELLIGENCE</small></div></div>
+  <div class="compact-mark" aria-hidden="true">S</div>
+  <button class="toggle" id="toggle" type="button" title="Collapse sidebar" aria-label="Collapse sidebar" onclick="toggleSidebar(event)">‹</button>
+ </div>
+ <div class="navlabel">WORKSPACE</div>
+ <nav class="nav">
+  <button data-page="forecast" title="Forecast"><span class="nicon">⌁</span><span class="navtext">Forecast</span></button>
+  <button data-page="explain" title="Explainability"><span class="nicon">◌</span><span class="navtext">Explainability</span></button>
+  <button data-page="whatif" title="What-If Analysis"><span class="nicon">◇</span><span class="navtext">What-If Analysis</span></button>
+  <button data-page="decision" title="Decision Support"><span class="nicon">↗</span><span class="navtext">Decision Support</span></button>
+  <button class="active" data-page="dashboard" title="Dashboard"><span class="nicon">⌂</span><span class="navtext">Final Summary</span></button>
+ </nav>
+ <div class="side-bottom"><div class="health"><span class="dot"></span><small>SYSTEM ONLINE</small><b>Forecast engine ready</b><small>DFFN forecast engine ready</small></div><div class="version">STEELSENSE · RESEARCH PROTOTYPE</div></div>
+</aside>
+
+<main class="main">
+<header class="top">
+ <div class="top-context">
+  <div class="plant-pulse"><span></span><i></i><b></b></div>
+  <div><strong>STEEL MANUFACTURING ENERGY FORECASTING</strong><small>8-HOUR FORECAST · OPERATIONAL VIEW</small></div>
+ </div>
+ <div class="top-status">
+  <span class="status-item"><i class="blue-dot"></i> DFFN ACTIVE</span>
+    <span class="status-item"><i class="time-dot"></i> AUTO TIME CONTEXT</span>
+ </div>
+</header>
+
+
+<section class="page" id="dashboard"><div class="energy-grid"></div>
+ <div class="hero">
+  <div>
+   <div class="eyebrow">STEELSENSE · STEEL MANUFACTURING ENERGY FORECASTING</div>
+   <h1>Forecast future <span>energy consumption.</span></h1>
+   <div class="sub">Forecast the next 8 hours of energy consumption using initial operational data for decision support.</div>
+  </div>
+  <div class="hero-chip" id="dash-status-chip"><small>DECISION STATE</small><b id="dash-status">Awaiting forecast</b></div>
+ </div>
+
+ <div class="dashboard-grid">
+  <div class="dash-main card">
+   <div class="dash-top"><div><div class="tag">CURRENT OUTLOOK</div><div class="ctitle">8-hour energy consumption</div></div><span class="dash-live">● LIVE MODEL</span></div>
+   <div class="dash-energy"><strong id="dash-energy">—</strong><span>kWh</span></div>
+   <div class="dash-track"><i id="dash-energy-bar"></i></div>
+   <div class="dash-meta"><span>Forecast horizon · 8 hours</span><span id="dash-energy-state">Awaiting forecast</span></div><div class="energy-stream"><span></span><span></span><span></span><span></span><span></span><em>ENERGY FLOW</em></div>
+  </div>
+
+  <div class="dash-side card">
+   <div class="tag">PROJECTED COST</div>
+   <div class="dash-cost" id="dash-cost">—</div>
+   <div class="muted">Based on current tariff</div>
+   <div class="risk-pill" id="cost-risk">COST · AWAITING FORECAST</div>
+  </div>
+
+  <div class="dash-side card">
+   <div class="tag">WHAT-IF ANALYSIS</div>
+   <div class="dash-cost" id="dash-whatif-energy">—</div>
+   <div class="muted" id="dash-whatif-copy">Run a DFFN What-If scenario</div>
+   <div class="risk-pill" id="dash-whatif-status">SCENARIO · WAITING</div>
+  </div>
+
+  <div class="card decision-live" id="dashboard-decision">
+   <div class="decision-icon" id="decision-icon">!</div>
+   <div><div class="tag" id="decision-tag">DECISION STATUS</div><div class="ctitle" id="decision-title">Run an 8-hour forecast to assess future energy consumption.</div>
+   <div class="muted" id="decision-copy">Status and guidance update from the latest forecast and scenario result.</div></div>
+  </div>
+
+  <div class="card" id="model-performance-card" style="grid-column:1/-1;padding:24px">
+   <div class="tag">MODEL PERFORMANCE</div>
+   <div class="ctitle">DFFN vs Random Forest</div>
+   <div class="muted" style="margin-top:4px">Final chronological test-set evaluation · 7,001 rows · lower MAE/RMSE and higher R² are better.</div>
+   <div class="metrics" id="model-performance-metrics" style="margin-top:18px">
+    <div class="metric"><small>MAE</small><strong>—</strong><small>DFFN · RF</small></div>
+    <div class="metric"><small>RMSE</small><strong>—</strong><small>DFFN · RF</small></div>
+    <div class="metric"><small>R²</small><strong>—</strong><small>DFFN · RF</small></div>
+   </div>
+   <div class="muted" id="model-performance-selection" style="margin-top:14px">DFFN is the primary operational forecasting model.</div>
+  </div>
+
+  <div class="dashboard-actions">
+   <button class="next" onclick="go('forecast')"><div><b>Generate the 8-hour forecast</b><span>Enter the latest operational conditions.</span></div><div class="go">→</div></button>
+   <button class="next" onclick="go('explain')"><div><b>Understand why the model produced the prediction</b><span>See which features influenced the forecast.</span></div><div class="go">→</div></button>
+   <button class="next" onclick="go('whatif')"><div><b>Test how an operational change affects the prediction</b><span>Evaluate a hypothetical change from the baseline.</span></div><div class="go">→</div></button>
+   <button class="next" onclick="go('decision')"><div><b>Combine the results for operational interpretation</b><span>Interpret the forecast for operational decision-making.</span></div><div class="go">→</div></button>
+  </div>
+ </div>
+</section>
+
+<section class="page hidden" id="forecast"><div class="energy-grid"></div>
+ <div class="hero">
+  <div><div class="eyebrow">STEEL MANUFACTURING · ENERGY FORECASTING</div><div class="hero"><h1>Forecast future <span>energy consumption.</span></h1></div><div class="sub">An operational view of the expected 8-hour energy consumption, with forecast and cost context.</div></div>
+  <div class="hero-chip"><small>FORECAST HORIZON</small><b>Future <em>8-hour</em> energy</b></div>
+ </div>
+ <div class="grid">
+  <div class="card form">
+   <div class="tag">INPUT PROFILE</div><div class="ctitle">Operating conditions</div><div class="muted">Use the latest available operational measurements.</div>
+   <div class="fields">
+    <div><label>Lagging Reactive Power</label><div class="field"><input placeholder="e.g. 13.5"></div></div>
+    <div><label>Leading Reactive Power</label><div class="field"><input placeholder="e.g. 4.5"></div></div>
+    <div><label>CO₂ Emission</label><div class="field"><input placeholder="e.g. 0.05"></div></div>
+    <div><label>Power Factor (%)</label><div class="field"><input placeholder="e.g. 96.0"></div></div>
+    <div class="full"><label>Load Type</label><div class="field"><select><option>Medium Load</option><option>Low Load</option><option>Maximum Load</option></select></div></div>
+    <div class="full"><label>Electricity Tariff</label><div class="field"><input placeholder="e.g. ₹8.00 / kWh"></div></div>
+   </div>
+   <div class="hint"><b>Time context handled automatically.</b><br>Time and model-derived features stay inside the preprocessing layer.</div>
+   <button class="cta" onclick="animatePrediction()"><span class="flow-dot"></span>Generate Forecast →</button>
+  </div>
+  <div class="card result">
+   <div class="resulthead"><span>FORECAST RESULT</span><span class="live">● READY</span></div>
+   <div class="pred">Predicted future energy consumption</div>
+   <div class="big" id="energy">931.85 <span>kWh</span></div><div class="accent-line"></div>
+   <div class="metrics forecast-metrics">
+        <div class="metric forecast-cost"><small>EST. COST</small><strong id="forecast-cost">₹7,454.80</strong></div>
+   </div>
+   <div class="next" onclick="go('explain')"><div><b>Understand this forecast</b><span>View local feature sensitivity and model drivers.</span></div><div class="go">→</div></div>
+   <div class="next" onclick="go('whatif')"><div><b>Test how an operational change affects the prediction</b><span>Explore a hypothetical change from this baseline.</span></div><div class="go">→</div></div>
+  </div>
+ </div>
+</section>
+
+<section class="page hidden" id="explain">
+ <div class="eyebrow">MODEL TRANSPARENCY · LOCAL EXPLANATION</div>
+ <div class="hero">
+  <div>
+   <h1>What drives the <span>forecast?</span></h1>
+   <div class="sub">Understand which operational and time-context features most influenced the current 8-hour energy forecast.</div>
+  </div>
+ </div>
+
+ <div class="analytics explain-grid" style="margin-top:30px">
+
+  <!-- Visual 1: ranked contribution chart -->
+  <div class="card analytic-card explain-main">
+   <div class="tag">FEATURE CONTRIBUTIONS</div>
+   <div class="ctitle">Local driver ranking</div>
+   <div class="muted">Current DFFN prediction · <span id="explain-energy">931.85</span> kWh</div>
+
+   <div class="bars explain-bars" id="explain-bars">
+    <div class="bar explain-row" data-feature="CO₂ · lag1" data-contribution="519.55">
+      <span>CO₂ · lag1</span>
+      <div class="track"><div class="fill explain-fill positive" style="width:84%"></div></div>
+      <b>+519.55</b>
+    </div>
+    <div class="bar explain-row" data-feature="NSM · lag4" data-contribution="-495.19">
+      <span>NSM · lag4</span>
+      <div class="track"><div class="fill v explain-fill negative" style="width:78%"></div></div>
+      <b>−495.19</b>
+    </div>
+    <div class="bar explain-row" data-feature="Medium Load" data-contribution="361.80">
+      <span>Medium Load</span>
+      <div class="track"><div class="fill explain-fill positive" style="width:58%"></div></div>
+      <b>+361.80</b>
+    </div>
+    <div class="bar explain-row" data-feature="Weekend context" data-contribution="-320.48">
+      <span>Weekend context</span>
+      <div class="track"><div class="fill v explain-fill negative" style="width:50%"></div></div>
+      <b>−320.48</b>
+    </div>
+   </div>
+
+   <div class="chart-legend">
+    <span><i class="legend-dot positive-dot"></i> Pushes the prediction upward</span>
+    <span><i class="legend-dot negative-dot"></i> Pushes the prediction downward</span>
+   </div>
+  </div>
+
+  <!-- Visual 2: contribution balance graph -->
+  <div class="card analytic-card">
+   <div class="tag">INFLUENCE BALANCE</div>
+   <div class="ctitle">Direction of model influence</div>
+   <div class="muted">Relative local contribution around the current prediction.</div>
+
+   <div class="balance-chart" id="balance-chart" aria-label="Diverging feature contribution chart">
+    <div class="balance-zero"></div>
+    <div class="balance-axis-label left">Lower prediction</div>
+    <div class="balance-axis-label right">Higher prediction</div>
+
+    <div class="balance-row">
+      <span class="balance-name">CO₂</span>
+      <div class="balance-track"><span class="balance-bar pos" style="--w:84%"></span></div>
+    </div>
+    <div class="balance-row">
+      <span class="balance-name">NSM</span>
+      <div class="balance-track"><span class="balance-bar neg" style="--w:78%"></span></div>
+    </div>
+    <div class="balance-row">
+      <span class="balance-name">Load</span>
+      <div class="balance-track"><span class="balance-bar pos" style="--w:58%"></span></div>
+    </div>
+    <div class="balance-row">
+      <span class="balance-name">Weekend</span>
+      <div class="balance-track"><span class="balance-bar neg" style="--w:50%"></span></div>
+    </div>
+   </div>
+  </div>
+
+  <!-- Interpretation -->
+  <div class="card analytic-card explain-interpretation">
+   <div class="tag">INTERPRETATION</div>
+   <div class="ctitle" id="explain-interpretation-title">CO₂ is the strongest local driver.</div>
+   <div class="muted explain-copy" id="explain-interpretation-copy" style="line-height:1.7;margin-top:12px">
+    The contribution profile indicates that CO₂ · lag1 has the largest positive local influence on this DFFN prediction, while NSM · lag4 provides the strongest negative influence among the displayed features.
+   </div>
+   <div class="interpretation-points">
+    <div><span class="point-icon positive-icon">+</span><span>Positive contribution means the feature pushes the model output upward for this prediction.</span></div>
+    <div><span class="point-icon negative-icon">−</span><span>Negative contribution means the feature pushes the model output downward for this prediction.</span></div>
+    <div><span class="point-icon neutral-icon">i</span><span>These are model-level local effects, not proof that changing a feature will cause the same change in real production.</span></div>
+   </div>
+  </div>
+
+ </div>
+
+ <div class="card analytic-card" style="margin-top:24px">
+  <div class="tag">RF SUPPORTING PERSPECTIVE</div>
+  <div class="ctitle">Random Forest view of the highlighted drivers</div>
+  <div class="muted">RF evaluates the same current-case drivers locally and shows how strongly each driver changes the RF prediction around this input.</div>
+   <div class="bars" id="rf-driver-bars" style="margin-top:22px"></div>
+  <div class="hint" style="margin-top:18px"><b>How to read this.</b><br>These percentages are calculated from local RF sensitivity around the current input and normalized only across the current DFFN-highlighted drivers. They provide an independent model perspective; they are not DFFN contributions, causal effects, or another energy prediction.</div>
+ </div>
+</section>
+<section class="page hidden" id="whatif">
+ <div class="eyebrow">SCENARIO ANALYSIS · DECISION SUPPORT</div><h1>Test a <span>different condition.</span></h1><div class="sub">Change the operating conditions and evaluate the resulting 8-hour energy consumption using the DFFN model.</div>
+ <div class="scenario-grid" style="margin-top:30px">
+  <div class="card scenario-card"><div class="eyebrow">CURRENT BASELINE</div><div class="scenario-value" id="whatif-baseline-energy">— <em>kWh</em></div><div class="muted" id="whatif-baseline-cost">Run the 8-hour forecast first.</div></div>
+  <div class="card scenario-card"><div class="eyebrow">DFFN WHAT-IF</div><div class="scenario-value" id="whatif-scenario-state">READY <em>to evaluate</em></div><div class="muted">The selected operating condition is evaluated with the same primary DFFN model.</div></div>
+  <div class="card scenario-card scenario-full">
+   <div class="tag">SCENARIO CONTROL</div>
+   <div class="ctitle">Operating conditions to explore</div>
+   <div class="scenario-input-grid" style="margin-top:14px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px">
+    <div><label>Lagging Reactive Power</label><div class="field"><input type="number" min="0" step="0.1" placeholder="e.g. 13.5"></div></div>
+    <div><label>Leading Reactive Power</label><div class="field"><input type="number" min="0" step="0.1" placeholder="e.g. 4.5"></div></div>
+    <div><label>CO₂ Emission</label><div class="field"><input type="number" min="0" step="0.01" placeholder="e.g. 0.05"></div></div>
+    <div><label>Power Factor (%)</label><div class="field"><input type="number" min="0" max="100" step="0.1" placeholder="e.g. 96.0"></div></div>
+    <div style="grid-column:1/-1"><label>Load Type</label><div class="field"><select style="width:100%;background:transparent;border:0;outline:0;color:inherit;padding:14px 0"><option>Medium Load</option><option>Low Load</option><option>Maximum Load</option></select></div></div>
+   </div>
+   <div class="hint"><b>DFFN What-If Analysis.</b><br>Change one or more operating conditions. The scenario is compared directly with the latest DFFN baseline forecast.</div>
+   <button class="cta" onclick="evaluateWhatIf()"><span class="flow-dot"></span>Evaluate What-If →</button>
+  </div>
+ </div>
+
+ <div class="card" style="margin-top:18px;padding:18px">
+  <div class="tag">DFFN SCENARIO RESULT</div>
+  <div class="ctitle">What-If prediction</div>
+  <div class="muted" style="margin-top:4px">Only the DFFN prediction is used for the scenario result and downstream Decision Support.</div>
+  <div class="scenario-verify" style="margin-top:18px"><div><div class="verify-label">DFFN PREDICTED 8-HOUR ENERGY</div><div class="verify-value" id="whatif-result-energy">Run What-If Analysis</div></div><div class="risk-pill" id="whatif-result-pill">WAITING FOR SCENARIO</div></div>
+ </div>
+</section>
+
+<section class="page hidden" id="decision">
+ <div class="card decision-live" id="decision-live-panel" style="margin-bottom:18px">
+  <div class="decision-icon" id="decision-live-icon">!</div>
+  <div><div class="tag">LIVE DECISION STATE</div><div class="ctitle" id="decision-live-title">Awaiting current forecast.</div>
+  <div class="muted" id="decision-live-copy">This panel updates from the latest forecast and projected cost.</div></div>
+ </div>
+ <div class="eyebrow">DECISION SUPPORT · RESPONSIBLE INTERPRETATION</div><h1>Turn the analysis into a <span>responsible decision.</span></h1><div class="sub">Combine the forecast, scenario effect and cost impact without presenting model output as a guaranteed production result.</div>
+ <div class="card decision" style="margin-top:30px"><span class="badge">MODEL SENSITIVITY · VALIDATION REQUIRED</span><h2>Scenario predicts higher energy consumption.</h2><p>The scenario increases predicted 8-hour energy relative to the baseline. Validate operational feasibility and actual energy measurements before implementation.</p></div>
+ <div class="card metrics" style="margin-top:18px">
+  <div class="metric"><small>BASELINE</small><strong>931.85 kWh</strong><small>₹7,454.80</small></div>
+  <div class="metric"><small>SCENARIO</small><strong>1,030.78 kWh</strong><small>₹8,246.24</small></div>
+  <div class="metric"><small>ENERGY CHANGE</small><strong class="amber">+98.93 kWh</strong><small>+10.62%</small></div>
+  <div class="metric"><small>COST CHANGE</small><strong>+₹791.44</strong><small>Model estimate</small></div>
+ </div>
+</section>
+</main></div>
+<div id="toast" style="position:fixed;right:24px;bottom:24px;padding:12px 15px;background:#121a20;border:1px solid #35434e;border-radius:10px;color:#d9e1e5;font-size:11px;opacity:0;transform:translateY(8px);transition:.25s;pointer-events:none">Scenario evaluated.</div>
+<script>
+const pages={dashboard:"dashboard",forecast:"forecast",explain:"explain",whatif:"whatif",decision:"decision"};
+const sidebar=document.getElementById("sidebar");
+const toggle=document.getElementById("toggle");
+
+function setSidebar(closed){
+  sidebar.classList.toggle("closed", Boolean(closed));
+  toggle.textContent = closed ? "›" : "‹";
+  toggle.title = closed ? "Expand sidebar" : "Collapse sidebar";
+  toggle.setAttribute("aria-label", closed ? "Expand sidebar" : "Collapse sidebar");
+}
+
+function toggleSidebar(event){
+  if(event){ event.preventDefault(); event.stopPropagation(); }
+  setSidebar(!sidebar.classList.contains("closed"));
+}
+
+// Always start expanded in the preview so the intended design is immediately visible.
+setSidebar(false);
+setTimeout(()=>go("dashboard"),20);
+function go(p){
+ Object.values(pages).forEach(x=>document.getElementById(x).classList.toggle("hidden",x!==pages[p]));
+ document.querySelectorAll("[data-page]").forEach(x=>x.classList.toggle("active",x.dataset.page===p));
+
+ document.querySelector(".main").scrollTo({top:0,behavior:"smooth"});
+}
+document.querySelectorAll("[data-page]").forEach(x=>x.onclick=(ev)=>{
+  const r=document.createElement("span");r.className="ripple";r.style.left=(ev.clientX-45)+"px";r.style.top=(ev.clientY-45)+"px";document.body.appendChild(r);setTimeout(()=>r.remove(),700);
+  go(x.dataset.page);
+});
+function num(v){const n=parseFloat(String(v).replace(/[₹,\s]/g,""));return Number.isFinite(n)?n:0}
+function currentInputs(){
+ const fields=[...document.querySelectorAll("#forecast input")];
+ return fields.map(x=>num(x.value));
+}
+
+function syncSidebarToggle(){
+ const sb=document.getElementById("sidebar"),tg=document.getElementById("toggle");
+ if(!sb||!tg)return;
+ const closed=sb.classList.contains("closed");
+ tg.textContent=closed?"›":"‹";
+ tg.title=closed?"Open sidebar":"Collapse sidebar";
+ tg.setAttribute("aria-label",tg.title);
+}
+
+function updateDynamicState(){
+ const live = window.SS_LIVE || {scenario:null, analysis:null};
+  const analysis = live.analysis ? live.analysis : null;
+ const energy = analysis ? Number(analysis.dffn) : 0;
+ const cost = analysis ? Number(analysis.cost) : 0;
+
+ document.getElementById("dash-energy").textContent=energy.toFixed(2);
+ document.getElementById("dash-cost").textContent="₹"+cost.toLocaleString("en-IN",{minimumFractionDigits:2,maximumFractionDigits:2});
+
+ const bar=document.getElementById("dash-energy-bar");
+ const energyState=document.getElementById("dash-energy-state");
+ if(!analysis){
+   document.getElementById("dash-energy").textContent="—";
+   bar.style.width="8%";
+   energyState.textContent="Awaiting forecast";
+ }else{
+   const energyPct=Math.min(100,Math.max(8,(energy/1200)*100));
+   bar.style.width=energyPct+"%";
+   if(energy>=1050){energyState.textContent="High demand";bar.style.background="linear-gradient(90deg,#ff6b73,#ffad5c)"}
+   else if(energy>=900){energyState.textContent="Elevated demand";bar.style.background="linear-gradient(90deg,#f2cf65,#ffad5c)"}
+   else {energyState.textContent="Lower demand";bar.style.background="linear-gradient(90deg,#5aa7ff,#49d7e8)"}
+ }
+
+ const costRisk=document.getElementById("cost-risk");
+ const costRatio=cost/8000;
+ costRisk.className="risk-pill";
+ if(!analysis){
+   costRisk.textContent="COST · AWAITING FORECAST";
+ }else if(costRatio>=1.08){costRisk.classList.add("bad");costRisk.textContent="COST · HIGH"}
+ else if(costRatio>=.95){costRisk.classList.add("warn");costRisk.textContent="COST · ELEVATED"}
+ else {costRisk.classList.add("good");costRisk.textContent="COST · CONTROLLED"}
+
+ const panel=document.getElementById("dashboard-decision");
+ const title=document.getElementById("decision-title");
+ const copy=document.getElementById("decision-copy");
+ const icon=document.getElementById("decision-icon");
+ panel.className="card decision-live";
+
+ if(costRatio>=1.08 || energy>=1050){
+   panel.classList.add("bad");icon.textContent="!";title.textContent="High energy-cost pressure detected.";
+   copy.textContent="The current forecast indicates elevated consumption and/or cost. Review the operating conditions before treating this as a favorable decision.";
+ }else if(costRatio>=.95 || energy>=900){
+   panel.classList.add("warn");icon.textContent="~";title.textContent="Operational review recommended.";
+   copy.textContent="The forecast is not automatically a bad outcome, but the energy level or cost deserves review before action.";
+ }else{
+   panel.classList.add("good");icon.textContent="✓";title.textContent="Forecast is within the current control band.";
+   copy.textContent="The predicted energy and estimated cost are comparatively lower. Continue with normal operational validation.";
+ }
+
+ const chip=document.getElementById("dash-status");
+ chip.textContent=panel.classList.contains("bad")?"High pressure":panel.classList.contains("warn")?"Review required":"Within control";
+ chip.style.color=panel.classList.contains("bad")?"#ff6e78":panel.classList.contains("warn")?"#f2cf65":"#5aa7ff";
+ const dp=document.getElementById("decision-live-panel");
+ if(dp){
+   const di=document.getElementById("decision-live-icon"),dt=document.getElementById("decision-live-title"),dc=document.getElementById("decision-live-copy");
+   dp.className="card decision-live "+(panel.classList.contains("bad")?"bad":panel.classList.contains("warn")?"warn":"good");
+   di.textContent=icon.textContent;dt.textContent=title.textContent;dc.textContent=copy.textContent;
+ }
+
+}
+
+function animateSidebar(){
+ sidebar.classList.add("opening");
+ setTimeout(()=>sidebar.classList.remove("opening"),650);
+}
+const originalSetSidebar=setSidebar;
+setSidebar=function(closed){
+ originalSetSidebar(closed);
+ syncSidebarToggle();
+ if(!closed) animateSidebar();
+ updateDynamicState();
+}
+
+function toast(msg="Scenario evaluated."){const t=document.getElementById("toast");t.textContent=msg;t.style.opacity=1;t.style.transform="translateY(0)";setTimeout(()=>{t.style.opacity=0;t.style.transform="translateY(8px)"},1700)}
+</script>
+
+<div id="workflow-summary" hidden>
+  <div data-step="1" data-title="Forecast">
+    User enters the operational inputs and generates the 8-hour prediction.
+  </div>
+  <div data-step="2" data-title="Explainability">
+    Shows why the model produced that prediction.
+  </div>
+  <div data-step="3" data-title="What-If Analysis">
+    Tests how changing an operational condition affects the prediction.
+  </div>
+  <div data-step="4" data-title="Decision Support">
+    Combines the forecast, explainability, and scenario results and gives the operational interpretation.
+  </div>
+  <div data-step="5" data-title="Final Summary">
+    Shows everything together in one place after the analysis is complete.
+  </div>
+</div>
+
+
+<script>
+/* SteelSense agreed workflow order */
+const STEELSENSE_WORKFLOW_ORDER = [
+  "forecast",
+  "explainability",
+  "what-if",
+  "decision-support",
+  "dashboard"
+];
+</script>
+
+
+<div id="workflow-definition" hidden>
+  <section data-step="01" data-name="Forecast">
+    <strong>Forecast</strong>
+    <p>User enters the available operational inputs and generates the next 8-hour energy consumption prediction.</p>
+  </section>
+  <section data-step="02" data-name="Explainability">
+    <strong>Explainability</strong>
+    <p>Shows which input features influence the forecast and helps explain why the model produced the prediction.</p>
+  </section>
+  <section data-step="03" data-name="What-If Analysis">
+    <strong>What-If Analysis</strong>
+    <p>Tests a hypothetical change in an operational condition and compares the resulting predicted energy consumption with the baseline.</p>
+  </section>
+  <section data-step="04" data-name="Decision Support">
+    <strong>Decision Support</strong>
+    <p>Combines the forecast and evaluated scenario to provide an operational interpretation, including energy and cost impact.</p>
+  </section>
+  <section data-step="05" data-name="Final Summary">
+    <strong>Final Summary</strong>
+    <p>Brings the latest forecast, explainability insight, What-If result, cost impact, decision status, and model performance together in one place.</p>
+  </section>
+</div>
+
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  document.querySelectorAll(".ss-driver-bar[data-value]").forEach(function (bar) {
+    bar.style.setProperty("--driver-value", bar.dataset.value);
+  });
+});
+</script>
+
+
+<script>
+(function(){
+  function initSteelSenseExplainability(){
+    const rows = Array.from(document.querySelectorAll("#explain-bars .explain-row[data-contribution]"));
+    if(!rows.length) return;
+    const values = rows.map(row => ({
+      feature: row.dataset.feature,
+      value: Number(row.dataset.contribution)
+    })).filter(x => Number.isFinite(x.value));
+    if(!values.length) return;
+
+    values.sort((a,b) => Math.abs(b.value) - Math.abs(a.value));
+    const strongest = values[0];
+    const positive = values.filter(x => x.value > 0).sort((a,b)=>b.value-a.value)[0];
+    const negative = values.filter(x => x.value < 0).sort((a,b)=>a.value-b.value)[0];
+
+    const title = document.getElementById("explain-interpretation-title");
+    const copy = document.getElementById("explain-interpretation-copy");
+
+    if(title && strongest){
+      title.textContent = strongest.feature + " is the strongest local driver.";
+    }
+    if(copy && strongest){
+      const direction = strongest.value >= 0 ? "upward" : "downward";
+      const opposite = negative ? negative.feature : (positive ? positive.feature : "the other displayed features");
+      copy.textContent =
+        "The contribution profile indicates that " + strongest.feature +
+        " has the largest local influence on this DFFN prediction, pushing the model output " +
+        direction + ". Among the displayed features, " + opposite +
+        " provides the strongest opposing influence. These effects describe model behavior for this prediction; they are not proof of a causal production effect.";
+    }
+  }
+  if(document.readyState === "loading"){
+    document.addEventListener("DOMContentLoaded", initSteelSenseExplainability, {once:true});
+  }else{
+    initSteelSenseExplainability();
+  }
+})();
+</script>
+
+<script>
+/* SteelSense live backend bridge: functionality only; approved visual markup/CSS is preserved. */
+(function(){
+  window.SS_LIVE = window.SS_LIVE || { scenario:null, analysis:null };
+  const fmt = (n,d=2) => Number.isFinite(Number(n)) ? Number(n).toLocaleString('en-IN',{minimumFractionDigits:d,maximumFractionDigits:d}) : '—';
+  const money = n => Number.isFinite(Number(n)) ? '₹'+fmt(n,2) : '—';
+  const toastLive = msg => { if(typeof toast==='function') toast(msg); };
+  async function api(url, options={}){
+    const res=await fetch(url, Object.assign({headers:{'Content-Type':'application/json'}}, options));
+    let data={}; try{ data=await res.json(); }catch(e){ throw new Error('Invalid backend response.'); }
+    if(!res.ok || data.ok===false) throw new Error(data.error || 'Backend request failed.');
+    return data;
+  }
+  function numberInputValue(el){ const n=Number.parseFloat(String(el?.value||'').replace(/[₹,\s]/g,'')); return Number.isFinite(n)?n:null; }
+  function forecastPayload(){
+    const f=[...document.querySelectorAll('#forecast input')];
+    const load=document.querySelector('#forecast select')?.value || 'Medium Load';
+    return {
+      lagging_reactive_power:numberInputValue(f[0]),
+      leading_reactive_power:numberInputValue(f[1]),
+      co2:numberInputValue(f[2]),
+      power_factor:numberInputValue(f[3]),
+      load_type:load,
+      tariff:numberInputValue(f[4])
+    };
+  }
+  function requireComplete(v){
+    for(const [k,val] of Object.entries(v)) if(k!=='load_type' && val===null) throw new Error('Please enter all required numeric operating values.');
+  }
+  function setForecastFields(inputs){
+    const f=[...document.querySelectorAll('#forecast input')];
+    if(f[0] && inputs.lagging_reactive_power!=null) f[0].value=inputs.lagging_reactive_power;
+    if(f[1] && inputs.leading_reactive_power!=null) f[1].value=inputs.leading_reactive_power;
+    if(f[2] && inputs.co2!=null) f[2].value=inputs.co2;
+    if(f[3] && inputs.power_factor!=null) f[3].value=inputs.power_factor;
+    if(f[4] && inputs.tariff!=null) f[4].value=inputs.tariff;
+    const s=document.querySelector('#forecast select');
+    if(s && inputs.load_type){ s.value = inputs.load_type==='Light Load' ? 'Low Load' : inputs.load_type; }
+  }
+  function setWhatIfFields(inputs){
+    if(!inputs) return;
+    const f=[...document.querySelectorAll('#whatif .scenario-input-grid input')];
+    if(f[0] && inputs.lagging_reactive_power!=null) f[0].value=inputs.lagging_reactive_power;
+    if(f[1] && inputs.leading_reactive_power!=null) f[1].value=inputs.leading_reactive_power;
+    if(f[2] && inputs.co2!=null) f[2].value=inputs.co2;
+    if(f[3] && inputs.power_factor!=null) f[3].value=inputs.power_factor;
+    const s=document.querySelector('#whatif .scenario-input-grid select');
+    if(s && inputs.load_type){ s.value = inputs.load_type==='Light Load' ? 'Low Load' : inputs.load_type; }
+  }
+  function setEnergy(energy,cost){
+    const e=document.getElementById('energy'); if(e) e.innerHTML=fmt(energy,2)+' <span>kWh</span>';
+    const metric=document.querySelector('#forecast .metrics .metric strong'); if(metric) metric.innerHTML=fmt(energy,2)+' <small style="display:inline">kWh</small>';
+    const costEl=document.getElementById('forecast-cost'); if(costEl) costEl.textContent=money(cost);
+    const dash=document.getElementById('dash-energy'); if(dash) dash.textContent=fmt(energy,2);
+    const dashCost=document.getElementById('dash-cost'); if(dashCost) dashCost.textContent=money(cost);
+    const explain=document.getElementById('explain-energy'); if(explain) explain.textContent=fmt(energy,2);
+  }
+  function renderExplanation(rows, energy){
+    if(!Array.isArray(rows)) return;
+    const bars=document.querySelectorAll('#explain-bars .explain-row');
+    const balance=document.querySelectorAll('#balance-chart .balance-row');
+    rows.slice(0,4).forEach((r,i)=>{
+      const value=Number(r.contribution)||0;
+      if(bars[i]){
+        const label=bars[i].querySelector(':scope > span');
+        const val=bars[i].querySelector(':scope > b');
+        const fill=bars[i].querySelector('.fill');
+        if(label) label.textContent=r.feature;
+        if(val) val.textContent=(value>=0?'+':'−')+fmt(Math.abs(value),2);
+        if(fill){ fill.classList.toggle('positive',value>=0); fill.classList.toggle('negative',value<0); fill.style.width=Math.min(92,Math.max(8,Math.abs(value)/(Math.max(...rows.map(x=>Math.abs(Number(x.contribution)||0)),1))*84))+'%'; }
+      }
+      if(balance[i]){
+        const name=balance[i].querySelector('.balance-name');
+        const bar=balance[i].querySelector('.balance-bar');
+        if(name) name.textContent=r.feature.replace(' · lag1','').replace(' · lag4','');
+        if(bar) { bar.classList.toggle('pos',value>=0); bar.classList.toggle('neg',value<0); bar.style.setProperty('--w',Math.min(92,Math.max(8,Math.abs(value)/(Math.max(...rows.map(x=>Math.abs(Number(x.contribution)||0)),1))*84))+'%'); }
+      }
+    });
+    const strongest=rows[0];
+    if(strongest){
+      const title=document.getElementById('explain-interpretation-title');
+      const copy=document.getElementById('explain-interpretation-copy');
+      if(title) title.textContent=strongest.feature+' is the strongest local driver.';
+      if(copy) copy.textContent='The contribution profile indicates that '+strongest.feature+' has the largest local influence on this DFFN prediction. These effects describe model behavior for this prediction; they are not proof of a causal production effect.';
+    }
+    if(energy!=null){ const ee=document.getElementById('explain-energy'); if(ee) ee.textContent=fmt(energy,2); }
+  }
+  function updateWhatIfSummary(scenario){
+    const energyEl=document.getElementById('dash-whatif-energy');
+    const copyEl=document.getElementById('dash-whatif-copy');
+    const statusEl=document.getElementById('dash-whatif-status');
+    if(!energyEl || !copyEl || !statusEl) return;
+    if(!scenario){
+      energyEl.textContent='—';
+      copyEl.textContent='Run a DFFN What-If scenario';
+      statusEl.className='risk-pill';
+      statusEl.textContent='SCENARIO · WAITING';
+      return;
+    }
+    const change=Number(scenario.energy_change_pct);
+    energyEl.textContent=fmt(scenario.dffn,2);
+    copyEl.textContent=(change>=0?'+':'−')+fmt(Math.abs(change),2)+'% vs current DFFN forecast';
+    statusEl.className='risk-pill '+(change<0?'good':change>0?'warn':'good');
+    statusEl.textContent=change<0?'POTENTIAL REDUCTION':change>0?'HIGHER ENERGY':'NO CHANGE';
+  }
+
+  function renderRfOperational(analysis){
+    if(!analysis) return;
+    const box=document.getElementById('rf-driver-bars');
+    const rows=analysis.rf_supporting_perspective;
+    if(!box) return;
+    if(!Array.isArray(rows) || !rows.length){
+      box.innerHTML='<div class="muted">Run a forecast to generate the RF supporting perspective.</div>';
+      return;
+    }
+    const max=Math.max(...rows.map(r=>Number(r.rf_importance_pct)||0),1);
+    box.innerHTML=rows.map(r=>{
+      const pct=Number(r.rf_importance_pct)||0, w=Math.max(4,pct/max*100);
+      const label=String(r.feature).replaceAll('_',' ');
+      return '<div class="bar"><span>'+label+'</span><div class="track"><div class="fill positive" style="width:'+w.toFixed(1)+'%"></div></div><b>'+fmt(pct,2)+'%</b></div>';
+    }).join('');
+  }
+  function applyAnalysis(data){
+    window.window.SS_LIVE.analysis=data.analysis;
+    window.window.SS_LIVE.scenario=null;
+    updateWhatIfSummary(null);
+    setForecastFields(Object.assign({}, data.analysis.inputs, {tariff:data.analysis.tariff}));
+    setWhatIfFields(data.analysis.inputs);
+    setEnergy(data.analysis.dffn,data.analysis.cost);
+    renderRfOperational(data.analysis);
+    renderExplanation(data.explainability,data.analysis.dffn);
+    const b=document.getElementById('whatif-baseline-energy'); if(b) b.innerHTML=fmt(data.analysis.dffn,2)+' <em>kWh</em>';
+    const bc=document.getElementById('whatif-baseline-cost'); if(bc) bc.textContent='DFFN 8-hour forecast · '+money(data.analysis.cost)+' estimated cost';
+    const state=document.getElementById('whatif-scenario-state'); if(state) state.innerHTML='READY <em>to evaluate</em>';
+    const result=document.getElementById('whatif-result-energy'); if(result) result.textContent='Run What-If Analysis';
+    const pill=document.getElementById('whatif-result-pill'); if(pill){pill.className='risk-pill';pill.textContent='WAITING FOR SCENARIO';}
+    updateDynamicState();
+    refreshDecision(null);
+  }
+  async function liveForecast(){
+    try{
+      const p=forecastPayload(); requireComplete(p);
+      if(p.lagging_reactive_power<0||p.leading_reactive_power<0||p.co2<0) throw new Error('Operational values cannot be negative.');
+      if(p.power_factor<0||p.power_factor>100) throw new Error('Power Factor must be between 0 and 100.');
+      if(p.tariff<=0) throw new Error('Electricity Tariff must be greater than zero.');
+      const data=await api('/api/forecast',{method:'POST',body:JSON.stringify(p)});
+      applyAnalysis(data); toastLive('8-hour DFFN forecast generated.');
+      go('forecast');
+    }catch(e){ toastLive(e.message); }
+  }
+  function whatIfPayload(){
+    const f=[...document.querySelectorAll('#whatif .scenario-input-grid input')];
+    const s=document.querySelector('#whatif .scenario-input-grid select');
+    return {
+      lagging_reactive_power:numberInputValue(f[0]),
+      leading_reactive_power:numberInputValue(f[1]),
+      co2:numberInputValue(f[2]),
+      power_factor:numberInputValue(f[3]),
+      load_type:(s?.value||'Medium Load')
+    };
+  }
+  function renderScenario(s){
+    window.window.SS_LIVE.scenario=s;
+    updateWhatIfSummary(s);
+    const baseline=document.getElementById('whatif-baseline-energy');
+    if(baseline) baseline.innerHTML=fmt(s.baseline_dffn,2)+' <em>kWh</em>';
+    const baseCost=document.getElementById('whatif-baseline-cost');
+    if(baseCost) baseCost.textContent='DFFN 8-hour forecast · '+money(s.baseline_cost)+' estimated cost';
+    const state=document.getElementById('whatif-scenario-state');
+    if(state) state.innerHTML=fmt(s.dffn,2)+' <em>kWh</em>';
+    const result=document.getElementById('whatif-result-energy');
+    if(result) result.innerHTML=fmt(s.dffn,2)+' kWh <small>predicted 8-hour energy</small>';
+    const pill=document.getElementById('whatif-result-pill');
+    const reduction=-Number(s.energy_change_pct);
+    if(pill){
+      pill.className='risk-pill '+(reduction>0?'good':'warn');
+      pill.textContent=(reduction>0?'POTENTIAL REDUCTION · ':'ENERGY CHANGE · ')+fmt(Math.abs(reduction),2)+'%';
+    }
+    refreshDecision(s);
+  }
+  async function evaluateWhatIf(){
+    try{
+      if(!window.window.SS_LIVE.analysis) throw new Error('Run the 8-hour forecast before What-If Analysis.');
+      const p=whatIfPayload();
+      for(const k of ['lagging_reactive_power','leading_reactive_power','co2','power_factor']) if(p[k]===null) throw new Error('Please enter all What-If operating values.');
+      if(p.lagging_reactive_power<0||p.leading_reactive_power<0||p.co2<0) throw new Error('Operational values cannot be negative.');
+      if(p.power_factor<0||p.power_factor>100) throw new Error('Power Factor must be between 0 and 100.');
+      const data=await api('/api/what-if',{method:'POST',body:JSON.stringify({inputs:p})});
+      renderScenario(data.scenario);
+      toastLive('What-If scenario evaluated with DFFN.');
+    }catch(e){toastLive(e.message);}
+  }
+  function refreshDecision(scenario){
+    api('/api/decision-support').then(data=>{
+      const dec=data.decision||{};
+      const title=document.getElementById('decision-live-title'); const copy=document.getElementById('decision-live-copy');
+      if(title) title.textContent=dec.title||'Forecast ready.';
+      if(copy) copy.textContent=dec.message||'';
+      const panel=document.getElementById('decision-live-panel'); if(panel){panel.className='card decision-live '+(dec.status==='High pressure'?'bad':dec.status==='Review required'?'warn':'good');}
+      const dashTitle=document.getElementById('decision-title'); const dashCopy=document.getElementById('decision-copy'); const icon=document.getElementById('decision-icon');
+      if(dashTitle) dashTitle.textContent=dec.title||'Forecast ready.';
+      if(dashCopy) dashCopy.textContent=dec.message||'';
+      if(icon) icon.textContent=dec.status==='Potential reduction'?'✓':dec.status==='High pressure'?'!':'~';
+      renderDecisionPage(data);
+    }).catch(()=>{});
+  }
+  function renderDecisionPage(data){
+    const dec=data.decision||{}; const s=data.scenario; const a=data.analysis; if(!a) return;
+    const decisionCard=document.querySelector('#decision .card.decision');
+    if(decisionCard){
+      const h=decisionCard.querySelector('h2'); const p=decisionCard.querySelector('p');
+      if(h) h.textContent=dec.title||'Review the forecast before scenario action.';
+      if(p) p.textContent=dec.message||'';
+    }
+    const ms=[...document.querySelectorAll('#decision .card.metrics .metric')];
+    if(ms[0]){
+      ms[0].querySelector('strong').textContent=fmt(a.dffn,2)+' kWh';
+      const smalls=ms[0].querySelectorAll('small'); if(smalls[1]) smalls[1].textContent=money(a.cost);
+    }
+    if(s){
+      if(ms[1]){ms[1].querySelector('strong').textContent=fmt(s.dffn,2)+' kWh';const smalls=ms[1].querySelectorAll('small');if(smalls[1])smalls[1].textContent=money(s.scenario_cost);}
+      if(ms[2]){ms[2].querySelector('strong').textContent=(s.energy_change>=0?'+':'−')+fmt(Math.abs(s.energy_change),2)+' kWh';const smalls=ms[2].querySelectorAll('small');if(smalls[1])smalls[1].textContent=(s.energy_change_pct>=0?'+':'−')+fmt(Math.abs(s.energy_change_pct),2)+'%';}
+      if(ms[3]){ms[3].querySelector('strong').textContent=(s.cost_change>=0?'+':'−')+money(Math.abs(s.cost_change));const smalls=ms[3].querySelectorAll('small');if(smalls[1])smalls[1].textContent='DFFN model estimate';}
+    } else {
+      if(ms[1]){ms[1].querySelector('strong').textContent='—';const smalls=ms[1].querySelectorAll('small');if(smalls[1])smalls[1].textContent='Run What-If Analysis';}
+      if(ms[2]){ms[2].querySelector('strong').textContent='—';const smalls=ms[2].querySelectorAll('small');if(smalls[1])smalls[1].textContent='No scenario evaluated';}
+      if(ms[3]){ms[3].querySelector('strong').textContent='—';const smalls=ms[3].querySelectorAll('small');if(smalls[1])smalls[1].textContent='No scenario evaluated';}
+    }
+  }
+  async function loadModelPerformance(){
+    try{
+      const data=await api('/api/model-performance');
+      const e=data.evaluation||{}; const d=e.dffn||{}; const r=e.rf||{};
+      const ms=[...document.querySelectorAll('#model-performance-metrics .metric')];
+      if(ms[0]){ms[0].querySelector('strong').textContent=fmt(d.mae,2)+' / '+fmt(r.mae,2);const s=ms[0].querySelectorAll('small');if(s[1])s[1].textContent='DFFN / RF · kWh';}
+      if(ms[1]){ms[1].querySelector('strong').textContent=fmt(d.rmse,2)+' / '+fmt(r.rmse,2);const s=ms[1].querySelectorAll('small');if(s[1])s[1].textContent='DFFN / RF · kWh';}
+      if(ms[2]){ms[2].querySelector('strong').textContent=Number(d.r2).toFixed(4)+' / '+Number(r.r2).toFixed(4);const s=ms[2].querySelectorAll('small');if(s[1])s[1].textContent='DFFN / RF';}
+      const sel=document.getElementById('model-performance-selection'); if(sel) sel.textContent=e.selection||'DFFN is the primary operational forecasting model.';
+    }catch(e){}
+  }
+  async function loadState(){
+    try{
+      const data=await api('/api/state');
+      if(data.analysis){
+        applyAnalysis({analysis:data.analysis,explainability:data.explainability});
+        window.window.SS_LIVE.analysis=data.analysis;
+      }
+      if(data.scenario){
+        renderScenario(data.scenario);
+      }
+      if(data.analysis) refreshDecision(data.scenario);
+    }catch(e){}
+  }
+
+  // Bind only the functions referenced by the approved markup.
+  window.animatePrediction=liveForecast;
+  window.evaluateWhatIf=evaluateWhatIf;
+  window.refreshDecision=refreshDecision;
+
+  document.addEventListener('DOMContentLoaded',function(){
+    loadModelPerformance();
+    loadState();
+  });
+})();
+</script>
+
+</body>
+</html>
+<style>
+.metric:nth-child(1) strong{color:var(--blue)}
+.metric:nth-child(2) strong{color:var(--cyan)}
+.metric:nth-child(3) strong{color:var(--orange)}
+.metric:nth-child(4) strong{color:var(--purple)}
+.section-number{color:var(--cyan)!important}
+.kicker{color:var(--purple)!important}
+.label-accent{color:var(--orange)!important}
+</style>
